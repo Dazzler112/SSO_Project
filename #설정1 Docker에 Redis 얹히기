@@ -1,0 +1,63 @@
+OIDC 방식에 JWT를 사용할 건데
+Q1.왜 Redis를 사용하냐??
+=>
+Refresh Token을 저장할때 필요하기 때문에
+
+Q2.원래 토큰을 서버에 저장 안하려고 JWT를 쓰는게 아니냐? 서버에 저장하면 위배되는거 아님?
+=>
+Refresh Token 탈취당했을때 그냥 방관하고 있을거임?
+감시라도 하고있어야 조치를 할 게 아니냐??
+
+
+RedisDB를 Docekr에 얹히기
+
+window os 일 경우
+cmd에
+ (비밀번호 없이하는 방법)
+docker run -d --name my-redis(<=RedisDB명) -p 6379:6379 redis 
+입력하면
+
+Unable to find image 'redis:latest' locally
+latest: Pulling from library/redis
+61320b01ae5e: Pull complete
+2eadfe3f8ccb: Pull complete
+7cd6cf8be223: Pull complete
+b99b504f32ae: Pull complete
+1db54fb7bf48: Pull complete
+4f4fb700ef54: Pull complete
+85952d2db39a: Pull complete
+Digest: sha256:dbf3e4b6ad3ece9c733282ff3f16942ed754fdc4ea12332154f30a9a9b88c3af
+Status: Downloaded newer image for redis:latest
+0333f6d6873b87c92a516852ac81dddb4292bf7675401de984ae85da81dbe29f
+
+이렇게 설치가 됨
+
+(비밀번호 포함벙법)
+docker run -d --name my-redis -p 6379:6379 redis redis-server --requirepass yourpassword
+
+docker ps 로 도커 상태 확인하기
+
+//==========================================================================================//
+
+Spring Boot와 연결하는 방법
+
+pom.xml에
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+의존성 주입
+
+
+application.properties
+(비밀번호 없는상태)
+spring:
+  redis:
+    host: localhost
+    port: 6379
+(비밀번호 있을때)
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    password: yourpassword
