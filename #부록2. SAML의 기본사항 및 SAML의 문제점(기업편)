@@ -1,0 +1,158 @@
+OAuth를 이해하려면 SAML을 알아야 하지만 SAML에 대한 몇 가지 기본사항을 이해하는 것이 좋다 
+너무 깊이 들어가지 않고, SAML은 그 자체로 큰 주제이다 
+
+Security Baiscs - SAML
+● SAML Metadata File
+● Trust between
+   ○ SAML Identity Provider
+   ○ SAML Service Provider
+● SAML Response
+   ○ Contains SAML Token
+     (SAML 토큰 포함)
+   ○ Token contains claims
+     (토큰에 클레임이 포함되어 있음)
+● Federated User
+  (연합 사용자)
+🔴 Single Sign On
+🔴 Redirect Importance
+   (리다이렉션의 중요성)
+
+
+
+//============================================================================//
+
+SAML의 문제점은??
+
+문제점 1. Microservice
+요즘 기업들은 단일 애플리케이션을 사용하지 않는다 요즘 기업들은 MSA로 전환하거나
+최소한 MSA를 응용프로그램에 사용하려고 시도한다
+모든 애플리케이션이 MS에 적합한것은 아니지만, 이런 애플리케이션엔 적합할 것이다
+MS를 사용하는 방법은 무엇일까? 해결책을 찾아야 한다.
+아래 화면을 보고 예를 한번 들어보자
+
+SAML Identity 
+   Provider                               Cloud Data Center 
+      ↑                                       
+   Redirect request                          
+ to authenticate user                          |ㅡㅡㅡㅡㅡㅡㅡㅡ→ App Service 1 ㅡㅡ→   📱
+      |                                        |                               Service 1 Datastore
+                                               |
+      💻    ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→ Application ㅡㅡㅡㅡㅡ→ App Service 2 ㅡㅡ→    📱
+ User ↑ Agent   http://company.com/app        UI                               Service 2 Datastore
+      |                                        |
+      🙍‍♂️                                       |
+     User                                      |ㅡㅡㅡㅡㅡㅡㅡㅡ→ App Service 3 ㅡㅡ→   📱
+                                                                               Service 3 Datastore
+
+
+애플리케이션이 조직 데이터 센터보다, 클라우드 데이터 센터에 배포된 것은 다르다
+그래서 원래 애플리케이션은 여러부분으로 나뉜다
+애플리케이션의 UI를 관리하는 사용자 인터페이스가 있다
+하지만 앱1, 앱2, 앱3 등 다양한 서비스가 있다 
+세 가지 다른 앱 서비스는 기본적으로 REST API이다, 이 서비스들은 기능을 제공한다
+애플리케이션의 백엔드에는 작은 데이터 저장소가 있을수도 없을수도 있다
+데이터를 보관하는 곳 뒤에 있다 그래서 이것은 MSA를 나타낸다.
+우리가 이것을 하고싶은 이유는 아마도 앱서비스1 이 앱과 다르게 확장되어야 하기 때문일 것이다.
+서비스2 사용자 수가 너무 많아서 앱 서비스 1의 인스턴스가 10개정도 필요할 수 있다
+반면 2, 3은 그렇게 많은 인스턴스가 필요하지 않다
+일반적으로 애플리케이션 UI는 많은 인스턴스가 필요하지 않을 수도 있는 UI만 처리한다
+
+그래서 요즘은 사람들은 이러한 애플리케이션 서비스와 
+애플리케이션 UI가 있는 Docker 또는 기타 컨테이너를 사용한다
+컨테이너에 배포되며 컨테이너는 별도로 확장된다
+따라서 이 화면에선 이전에 많은 예시에서 본 것처럼 조직 데이터 센터를 볼 수 있다
+사용자, 사용자 에이전트 및 SAML Identity Provider, 데이터 저장소를 건너뛰었다
+
+따라서 애플리케이션 UI는 SAML Identity Provider와 SSO를 할 수있다. 문제 없다
+거기서 애플리케이션 UI에서 세션을 가질 수 있지만, 문제는 다음과 같은 경우에 발생한다
+애플리케이션 UI는 앱서비스 1,2,3을 위해 REST AIP를 호출해야 한다  물론 호출할 수 있다
+REST API지만 해당 앱 서비스에 대한 액세스를 보호하기 위해 어떤 보안 메커니즘을 사용하겠냐
+앱서비스는 실제로 어떤 사용자가 호출을 했는지 아무도 모르게 해야 한다
+다른 사람들은 실제로 그 호출을 수푸핑하고 있다 SAML 프로바이더는 이를 수행할 수 있는 매커니즘이 없다.
+리다이렉션 매커니즘을 거쳤으며 SAML 서비스 프로바이더 제공업체이기도 하다
+SAML Identity Provider와 Trust관계가 있다 그렇다면 애플리케이션 UI는 어떻게 소통 할까
+
+애플리케이션 서비스 1 또는 어떤 보안 매커니즘을 사용할 것인가? 그것에 대해 좀더 알아보자
+SPA를 사용하면 좀 더 나빠질 수 있다 따라서 애플리케이션 UI가 실제로 크다고 가정한다
+JS 컴포넌트는 브라우저에 다운로드되어 브라우저 내에 실행된다
+이경우 서비스1, 2에 연결하는 브라우저이다
+서비스 3에서 동일한 문제가 적용된다 브라우저가 서비스1,2,3에 어떻게 호출할까?
+그것들은 실제로 어떻게 안전하게 보호받을 수 있을까? 어떤 종류의 보안 메커니즘은 진화해야 한다
+
+한 가지 방법은 
+애플리케이션 UI가 각 서비스에 SAML 토큰을 전달하는 것이다
+그리고 서비스가 실제로 토큰을 개별적으로 확인하도록 한다, 왜냐면 그것은 나쁜 생각일 것이다
+토큰 자체가 크기 때문에 요청할 때마다 이러한 서비스로 토큰을 보내야 한다
+그리고 그것은 SAML 메타데이터가 필요하다는 사실은 말할 것도 없고, 엄청난 오버헤드가 될 것이다
+이러한 서비스에 별도로 설치되므로 실현 가능한 접근 방식이 아니므로 확실히 더 나은 접근 방식이다
+접근 방식을 고안해야 한다. 
+다른 사용 사례를 살펴보겠다
+
+
+문제점2. Cloud apps
+여기 또 다른 문제가 있다
+아래 오른쪽에 있는 클라우드 데이터 센터 1에서 애플리케이션과 데이터를 확인할 수 있다
+
+-How does REST calls across network boundaries get secured?
+
+
+                                                                   Cloud Data Center 2
+Organization Data Center 
+                                                  REST API
+      SAML Identity                            (Another Cloud)
+         Provider                                    ↑
+            ↑                                        |
+         Redirect request                            |
+       to authenticate user                          |             Cloud Data Center 1
+            |                                        |                              
+                                                     |
+  🙍‍♂️  ㅡ→  💻   ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Application ←ㅡㅡAccessㅡㅡ→  📱
+ User  User ↑ Agent   http://company.com/app        UI         Data      
+            |                                        |              Application Datastore
+         REST API                                    |
+       (On Premises)    ←ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ |
+                                                                               
+
+별도의 클라우드 환경에 함께 저장하고 해당 애플리케이션이 REST API와 대화해야 한다
+별도의 데이터 센터에 있거나 REST API와 대화하고 싶을 수도 있다
+조직 데이터 센터. 다시 한 번 문제는 어떤 메커니즘이 적용될 것인가이다
+이 REST API를 고정하는 데 사용하거나 다시말해, 이 REST API는 메커니즘이 필요하다
+보안을 유지하기 위해 지금은 보통 사용자 ID와 비밀번호가 애플리케이션 으로 전송되어 호출된다
+REST API와 애플리케이션은 사용자 ID와 비밀번호를 사용하여 호출하고 
+REST API는 사용자ID와 PW를 데이터 센터 어딘가에 안전하게 보관한다. 다른 사용 사례를 들어보겠다
+
+
+문제점 3. Machine to Machine
+때때로 엔터프라이즈 애플리케이션에는 예약된 크론 작업이 있다. 이제 이러한 크론 작업도 있을 수 있다
+
+- Scheduled Tasks, Daemons sometimes need to call REST APIs. How are they secured?
+- No user involved
+
+
+                                            Data Center 2
+
+REST API
+   ↑
+   |
+   |
+   |
+   |                                        Data Center 1
+   |                              
+   |
+Application  ←ㅡㅡ Access Data ㅡㅡ→   📱
+                              Application Datastore
+             
+데이터 센터 전체 또는 동일한 데이터 내에서 REST API를 호출하는 동일한 문제가 있다
+중심은 있지만 다른 애플리케이션이다. 실제로 이러한 문제를 어떻게 보호할 수 있는지도 동일한 문제가 발생한다
+예약된 크론작업에서 API를 쉬게한다 맞지? 그래서 이 예약된 크론작업엔 사용자가 참여하지 않느다
+여기에는 실제로 REST API로 호출하는 버튼을 클릭하는 사용자가 없다
+예정된 방식으로 뒤에서 일어나고 있기 때문에 다시 한 번 문제는 REST API가 어떻게 작동하는지 이다
+보안이 확보될 것이다, 위의 모든 사용 사례에서 공통된 주제를 발견했을 수도 있다.
+SAML은 특히 데이터센터 전반에서 SSO에 적합하다. 그 주요 결함은 다음과 같다. 
+REST API를 처리할 수 없으며 그렇게 하도록 설계된 적도 없다.
+하나의 애플리케이션을 처리하는 것에 대해 우리는 많은 애플리케이션 기업에 대해 얘기하고 있다
+여러 데이터 센터에 배포되며 이러한 REST API 호출의 보안 측면을 관리해야 한다
+즉, 기업 전체 REST API호출의 보안을 관리할 수 있는 인프라가 필요하다
+위의 기업에 문제에 대한 해결책을 찾아야 한다
+그러나 지금까지 우리는 오로지 기업 세계에만 집중해 왔다
+이제 소셜 미디어 세계에 일어나고 있는 일에 집중해 보겠다.
