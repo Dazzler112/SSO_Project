@@ -1,0 +1,94 @@
+SAML의 문제점은?? (소셜미디어편)
+
+Social Media Platform
+● Social Media Sites
+   ○ Facebook
+   ○ LinkedIn
+   ○ Google
+   ○ Twitter
+   ○ GitHub
+   ○ Yahoo
+● A User usually has Multiple Identities
+  (사용자는 일반적으로 여러 개의 신원을 갖고 있다)
+   ○ Many Identity Providers
+    (많은 신원 제공자)
+● What if a third party application wants to access or publish to these
+  sites on behalf of its user?
+  (타사 애플리케이션이 다음에 액세스 하거나 게시하려는 경우 어떻게 되나?)
+   ○ User/password would be a bad idea
+     (사용자/비밀번호? 나쁜 아이디어)
+
+인터넷 애플리케이션, 즉 소셜 애플리케이션에 집중해 보겠다
+위와 같은 사이트에 사람들이 다음과 같은 계정을 갖고 있다
+거대한 소셜 미디어 애플리케이션을 페이스북 링크드인 구글에 계정이 있어서 어떤 의미에선
+기업 환경과는 매우 다른 인터넷의 여러 신원 확인
+내 신원이 Active Directory의 한 곳에 저장되어 있으므로, 너가 글을 쓰고 싶다면
+소셜 미디어 애플리케이션 중 하나와 통합하고 싶은 애플리케이션은 다음과 같다
+Linkedin은 어떻게 해야 하나? Linkedin에는 애플리케이션에서 호출할 수 있는 REST API가 있다
+하지만 다른 사람의 계정에 액세스 하려면 API를 통과하려면 어떤 자격 증명이 필요할까?
+애초에 왜 다른 사람의 계정에 접속하고 싶을까?
+
+
+이문제를 예로 들어 설명해 보겠다. 그러면 잠시 아래 화면을 살펴보겠다
+
+Social Media Applications - Problem
+
+
+                                ⚫ LinkedIn Data Center
+                                 
+           https://www.linkedin.com/                                             📱
+                |ㅡㅡㅡㅡㅡㅡㅡ→  LinkedIn UI ㅡㅡ→ LinkedIn API     LinkedIn Identity datastore
+                |                                             |     
+                |                                        |    |ㅡㅡㅡㅡㅡㅡ→ 📱     
+                |                                        |                LinkedIn
+                |                                        |                Datastore
+                |                          Need to call the linkedin API
+                |                                    security              
+                |                                        |
+                |                                        |
+                |                                        |             
+                |                                        |                              
+                       http://company.com/app            |
+     🙍‍♂️  ㅡㅡ→ 💻   ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→    Learning     ←ㅡㅡㅡAccessㅡㅡㅡ→     📱
+ Home User  Home Laptop                             Application         Data        Learning App
+                                                                                      Datastore
+                                                          
+                                            ⚫ Data Center
+
+
+이 화면에서 보이는 것은 두 개의 데이터 센터이다
+하나는 모든 LinkedIn엔티티가 있는 LinkedIn 데이터 센터이다 
+LinkedIn API, LinkedIn UI, LinkedIn 데이터 및 저장소가 존재한다
+또한 Identity DB도 있다. 따라서 사용자로서 
+LinkedIn My Identity에 액세스할 수 있다면 다음과 같다
+LinkedIn Identity 데이터 저장소에 저장되어 있으며 www.linkedin.com을 통해 LinkedIn에 액세스할 수 있다.
+이제 시스템을 사용하는 홈 사용자도 학습에 액세스할 수 있다고 가정해 보겠다
+Udemy와 같은 애플리케이션은 Coursera 또는 Lynda일 수 있다. 다음과 같은 학습 애플리케이션이다
+사용자가 원하는 주제를 배울 수 있도록 사이트에서 강좌를 이용할 수 있다
+그에 대해 학습 앱 데이터 저장소에 저장되어 있으며, 학습 애플리케이션은 다음과 같은 작업을 수행할 수 있다
+아마도 자체 신원 데이터 저장소가 있을 것이다. 그래서 이것은 홈 사용자가 
+인터넷에서 두 가지 다른 애플리케이션에 액세스할 수 있으며, 각각 고유한 신원 데이터 저장소를 갖고있다
+
+그렇다면 문제는 무엇일까? 시나리오를 살펴보겠다.
+학습 애플리케이션이라고 가정해 보겠다
+
+사용자가 실제로 링크드인 사이트에 과정을 이수했다는 사실을 게시하고자 한다.
+사용자가 학습 애플리케이션으로 이동하고, 강의를 수강했으며, 모든 것이 완료되었다. 
+이제 그는 다른 사람들이 링크드인 계정에 게시하기 버튼을 클릭하여 다른 사람들이 할 수 있도록 하고 싶다
+보자. 이제 한 걸음 물러서서 학습 애플리케이션이 이를 어떻게 달성할 수 있는지 살펴보겠다
+사용자 인증서를 게시하려면 학습 애플리케이션이 LinkedIn API를 호출해야 한다
+LinkedIn 계정으로 이동한다. 그러나 학습 애플리케이션 자체에는 자격 증명이 없다
+사용자가 그 API를 호출하는 것은 보안 관점에서 학습 애플리케이션이다
+이 API를 호출할 방법이 없다. 어떻게 그렇게 할 수 있을까? 
+한 가지 방법은 학습 애플리케이션이 팝업되는 것이다
+사용자 자격 증명 상자를 열어 LinkedIn 자격증명을 요청하면 다음과 같은 경우
+사용자는 학습앱이 해당 자격 증명을 사용하여 API를 호출할 수 있는 LinkedIn 자격 증명을 입력한다. 
+하지만 사용자가 자신의 자격 증명을 학습에 전달해서는 안되기 때문에 이것은 나쁜 생각이다
+애플리케이션 사용자가 LinkedIn 자체에 자격증명을 전달하는 것은 하나의 문제지만 
+이는 사용자가 자격 증명을 제3자 애플리케이션에 전달하는 것과는 완전히 다른 것이다.
+이 특정 경우에는 학습 애플리케이션이 제3자 애플리케이션에 불과하다.
+LinkedIn의 자격 증명으로는 신뢰할 수 없다. 그래서 다시 한 번 REST API를 호출해야 한다
+하지만 우리가 그 API를 호출할 방법은 없다. 
+사용자가 다음과 같은 역할을 해야 한다
+학습 애플리케이션에 LinkedIn API를 호출할 수 있도록 권한을 부여할 수 있다
+적절한 자격 증명이나 토큰을 사용하여 살펴보겠다
