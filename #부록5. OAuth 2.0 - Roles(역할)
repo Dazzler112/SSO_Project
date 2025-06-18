@@ -1,0 +1,59 @@
+우리는 이미 OAuth 프레임워크에서 몇 가지 역할을 보았지만
+이번 화면에서 공식적으로 소개한다. 시연의 전체 아키텍처 다이어그램을 볼 수 있다
+
+
+                                                     OAuth 2.0 - Roles
+
+
+● Resource Owner                                                          |ㅡㅡㅡㅡㅡㅡ→ Google Photos ㅡㅡㅡㅡㅡㅡㅡㅡㅡ→   📱
+   ○ The User                                                             |             Resource Server               Google Photos User
+   ○ User Agent                                                           |                                                Resources
+● Resource Server                                                         |                 Google 
+   ○ REST API which protects                                              |              Authorization                       📱
+     resource                                                             |                 Server                    Google Identity
+● Client                                                                  |                                              datastore
+   ○ Application that needs             🙍‍♂️  ㅡㅡㅡ→ 💻 ㅡㅡㅡㅡㅡ→   Shutterfly  
+     access                         Resource    User Agent       Client Application                                          ⚫ Google Cloud
+● Authorization Server                Owner                               |
+   ○ Authorizes the client                                                |
+   ○ Gives out access tokens                                              |             Facebook                        📱
+   ○ Many on the Internet                                                 |           Authorization              Facebook Identity 
+   ○ OAuth Endpoints                                                      |              Server                      datastore
+                                                                          |
+                                                                          |ㅡㅡㅡㅡㅡㅡ→ Facebook ㅡㅡㅡㅡㅡㅡㅡㅡㅡ→   📱
+                                                                                      Resource Server        Facebook User Resource
+                                                                                                                             
+															                                                                                               ⚫ Facebook Cloud
+
+
+↳(화면에 대한 설명)
+지난 번에 살펴본 내용이다. 오른쪽 상단에 Google 엔티티가 표시된다
+오른쪽 하단에 있는 Facebook 엔티티가 보인다. 정확히 찾아보겠다
+특정 사용 사례에서 다양한 주체들이 수행하는 OAuth 역할.
+먼저 리소스 소유자는 누구지? Shutterfly애플리케이션을 사용 하던 사람이었기 때문이다
+너는 자원 소유자이다. 니 자원은 무엇이지? 구글 사진에 너의 구글 사진이 있다.
+사용자이다
+페이스북 자료는 Shutterfly가 게시를 위해 접근해야 하는 너의 계정일 뿐이다
+여기 브라우저도 주목해라(💻 User Agent) 저것은 사용자 에이전트이며 전체에서 중요한 역할을 한다
+OAuth 흐름. 우리는 SAML 다이어그램에서 인증을 위한 리다이렉션이 발생 하는 것을 봤다
+따라서 여기서 사용자 에이전트는 HTTP 요청을 리다이렉션 하여 OAuth 흐름에서 중요한 역할을 한다
+이에 대해선 향후 더 자세히 알아보겠다. 리소스 서버는 누구지?
+이 경우에는 두 개의 리소스 서버가 있다. 하나는 Google 사진 리소스 서버이고
+다른 하나는 
+둘 페이스북 리소스 서버이다. 둘 다 각자의 리소스를 보호하고 있으며 기본 적으로
+HTTP REST API이다. 클라이언트는 누구지? 이경우 클라이언트는 서드파티 애플리케이션이다
+Shutterfly 클라이언트 애플리케이션이다(Shutterfly Client Application). 
+이것이 클라이언트이다. 이 애플리케이션은 구글 리소스 서비스에서 사진을 가져온다
+그래서 기본적으로 구글 사진으로 이동한다.
+리소스 서버와 사진을 가져와서 Facebook리소스 서버를 호출하여 게시한다
+해당 사용자의 페이스북 페이지에 있는 사진이다. 이 작업이 정확히 어떻게 수행되는지는 나중에 살펴보겠다.
+인증 서버는 누구지? 사실 두 개의 인증 서버가 있다.
+하나는 구글 인증 서버(Google Authorization Server)와
+두번째는 페이스북 인증서버(Facebook Authorization Server)이다
+그래서 Shutterfly 클라이언트 애플리케이션이 실제로 
+페이스북과 구글 모든 인증 서버를 모두 처리해야 한다
+권한 부여 서버는 리소스 소유자로부터 필요한 권한을 얻는 데 도움이 된다
+그런 다음 클라이언트가 리소스 서버에 액세스할 수 있도록 액세스 토큰을 제공한다
+이 시점에서 우리는 그것을 완전히 이해하지 못하지만 곧 그것에 도달할 것이다
+OAuth 흐름을 실제로 살펴보기 전에 클라이언트 등록에 대한 이해가 필요하다
+토큰 및 OAuth 범위에 액세스 한다. 다음엔 클라이언트 등록에 대해 알아보겠다.
