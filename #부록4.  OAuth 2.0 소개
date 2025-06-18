@@ -1,0 +1,88 @@
+우리는 SAML의 문제점들을 해결하기 위해 이 기술을 소개하려고 한다
+이 문제들을 해결하기 위해 특별히 만들어졌으며, 이를 OAuth2.0 프레임워크 라고 한다.
+1.0버전은 있지만 거의 사용 되지 않으므로 이를 건너뛰고 2.0에 대새 직접 이야기 하겠다
+거의 모든 소셜 미디어 대기업이 OAuth2.0 Authorization 서버를 사용하여 REST API를 보호한다
+그리고 통합을 원하는 모든 타사 애플리케이션은 OAuth를 배워야 한다
+또한 OAuth2.0 Authorization 서버도 엔터프라이즈 도메인에 깔끔하게 맞는 것으로 나타났다
+소셜 미디어 애플리케이션과 기업용 애플리케이션인 인터넷 애플리케이션의 OAuth 사용법 차이점을 알게 될 것이다
+그런 다음 이 둘 사이에 존재하는 모든 혼란을 제거하겠다.
+
+RFC 6749에 제공된 한 줄 설명은 OAuth 2.0 프레임워크를 자세히 설명한다
+다음은 한 줄 설명이다
+-----------------------------------------------------------------------------------------
+OAuth 2.0 Authorization Framework(RFC 6749)
+
+The OAuth 2.0 authorization framework enables a third-party application  
+to obtain limited access to an HTTP service. either on behalf of a resource owner by   
+orchestrating an approval interaction between the resource ownrer and the HTTP service, or
+by allowing the third-party application to obtain access on its own behalf. 
+-----------------------------------------------------------------------------------------
+↳(해석본)
+OAuth2.0 Authorization 프레임워크는 타사를 지원한다
+리소스 소유자를 대신하여 HTTP 서비스에 대한 제한된 액세스 권한을 언디 위한 애플리케이션
+리소스 소유자와 HTTP 서비스 간의 승인 상호 작용 조정 또는
+제3자 애플리케이션이 스스로 액세스 권한을 얻을 수 있도록 허용함으로써
+한 문장에 많은 정보가 담겨 있고 문장을 완전히 이해하는 데는 시간이 좀 걸릴것이다.
+
+지금은 소셜 미디어 문제의 관점에서 이 정의를 살펴보겠다.
+우리가 논의하고 모든 역할이 어디에 맞는지 확인한 학습 애플리케이션과 관련하여
+타사 애플리케이션, 학습애플리케이션, HTTP 서비스, 리소스 소유자 및 제한된 액세스 권한
+그래서 이제 설명을 학습 애플리케이션의 아키텍처와 나란히 넣었다
+
+                          OAuth 2.0 Authorization Framework
+
+The OAuth 2.0 authorization         							      ⚫ LinkedIn Data Center
+framework enables a third-party application                                                                           HTTP Service                    
+to obtain limited access to an HTTP service.                            https://www.linkedin.com/                     ↗                    📱
+either on behalf of a resource owner by                                       |ㅡㅡㅡㅡㅡ→  LinkedIn UI ㅡ→ LinkedIn API     LinkedIn Identity datastore
+orchestrating an approval interaction between                                 |                                             |     
+the resource ownrer and the HTTP service, or                                  |                                        |    |ㅡㅡㅡㅡㅡ→ 📱     
+by allowing the third-party application to obtain                             |                                        |              LinkedIn
+access on its own behalf.                                                     |                                        |              Datastore
+                                                                              |                          Need to call the linkedin API
+                                                                              |                                    security              
+                                                                              |                                        |
+                                                                              |                                        |
+                                                                              |                                        |             
+                                                                              |                                        |                              
+                                                                                      http://company.com/app           |
+                                                                    🙍‍♂️  ㅡ→ 💻   ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→    Learning     ←ㅡㅡㅡㅡAccessㅡㅡㅡㅡ→          📱
+                                                                Home User  Home Laptop                        Application            Data              Learning App
+                                                                     ||                                                ↳Third Party Application          Datastore
+                                                                The Resource Owner                                                         
+                                                                                                           ⚫ Data Center
+
+
+그래서 다시 한번 새로고침을 한다면 학습 애플리케이션은 온라인 웹 애플리케이션이다
+학생이 게시하고자 할 때 Udemy 또는 Coursera와 같은 온라인 강좌를 제공한다
+그 또는 그녀의 LinkedIn 사이트에 대한 인증서. 애플리케이션은 다음과 같은 접근 권한이 필요하다
+LinkedIn REST API를 통해 역할이 어디에 맞는지 확인해 보겠다
+먼저 리소스 소유자가 누구인지 살펴보겠다
+LikedIn의 사용자는 리소스 소유자이므로 리소스 소유자이다
+LinkedIn의 리소스, 학습앱이 액세스하려는 계정이다 
+리소스가 링크드인 데이터 저장소에 저장된다, 그곳이 리소스가 저장되는 곳이고, 바로 그곳이다
+학습 애플리케이션은 기본적으로 해당 사용자를 위해 LinkedIn 데이터 저장소에 액세스하기를 원한다.
+그래서 어떤 것이 제3자 애플리케이션이냐? 학습 애플리케이션은 제3자이다.
+응용 프로그램 학습 애플리케이션은 LinkedIn API에 접근해야 하는 애플리케이션이다
+제3자 애플리케이션이어야 한다.
+HTTP 서비스는 어떤것이냐? 여기서 서비스는 LinkedIn API이다
+LinkedIn REST API는 HTTP 서비스이며, OAuth용어로는 리소스라고도 한다
+서버는 LinkedIn 데이터 저장소의 리소스를 보호하는 서버이기 때문이다
+우리는 또한 OAuth 2.0 Authorization 서버 박스를 가지고 있는데, 지금 그것이 가장 중요한 부분이다
+OAuth 2.0 프레임워크의 승인을 얻는 데 주요 역할을 하는 프레임워크이다
+리소스 소유자로부터, 링크드인 상자에 OAuth2.0 Authorization 서버가 그려져 있음을 유의해라
+실제로 아키텍처 다이어그램의 LinkedIn 측에 있다 이제 이것은 다음과 같은 이유로 
+Authorization 서버는 일반적으로 리소스에 연결되며, 이 경우 LinkedIn API이다.
+슬라이드에서 언급된 제한된 접근에 대해 간단히 알아보겠다
+학습 애플리케이션이 LinkedIn API에 대한 액세스를 제한하는 방법은 무엇이지?
+그것은 베어러 토큰이라고도 불리는 접근 토큰의 형태이다. 
+기본적으로 LinkedIn API에 액세스하기 위해서이다
+학습 애플리케이션은 액세스 토큰을 얻기 위해 인증서버에 HTTP 요청을 할 것이다
+그런 다음 해당 토큰을 사용하여 LinkedIn API를 호출하면 이 액세스 토큰은
+제한된 시간 동안 유효하다
+5분 또는 1시간 후에 애플리케이션이 다른 애플리케이션을 받아야 한다고 가정한다
+우리는 이 토큰 접근 방식의 장점을 향후에 알아볼 것이다
+
+다음에는 HTTP 메세지와 토큰 형식에 대해 설명하지 않고 OAuth에 대해 이야기 하겠다
+이것은 너에게 좋은 개요를 제공하겠지만 다음 두 부분에선 잡초속으로 들어갈 것이다
+그리고 Google및 Okta Authorization 서버를 사용하여 HTTP 메시지와 배개변수를 가지고 놀 수 있다.
