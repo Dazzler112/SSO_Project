@@ -1,0 +1,98 @@
+OAuth 2.0 - JWT 토큰
+
+
+구조화된 토큰(Structured Token)은 Opaque Token과 달리 토큰 자체에 필요한 정보를 모두 담고 있는 형태이다.
+                  OAuth 2.0 - JWT Token
+
+
+       JWT Token is sent is an HTTP Header                   signed JWT token and extract
+       Authorization : Bearer <jwt token>                    scopes without sending to          
+       (JWT 토큰은 HTTP 헤더                                 Authorization Server  
+        Authorization : Bearer <jwt 토큰>으로               (Authorization Server로 전송하지 않고 
+        전송됩니다. )                                        서명된 JWT 토큰 및 추출 범위        )  
+                                                                        /
+                                                     ⚫ Data centerㅡㅡ/ㅡㅡㅡㅡㅡ |
+                                                      |               /           |
+             Call HTTP API with JWT Token (T)         |              /            |
+         |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Resource Server            |
+         |                                            |                           | 
+         |                                            |                           |
+         |                                            |                           |
+         |                                            |                           |
+         |                                            |                           |
+         |                                            |                           |
+         |                                            |                           |
+      Client          HTTP Request for Access Token   |                           |
+    Application ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→       Authorization         |
+         ↑                                            |         Server            |
+         |                                            |ㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡ|
+         |            Returns Signed JWT Token (T)                |
+         |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ |
+
+
+
+대표적인 예는 JWT(JSON Web Token)이며,
+이는 JSON 형식의 구조화된 문자열로 구성되어 있어 대부분의 언어에서 쉽게 파싱할 수 있다.
+
+이러한 JWT는 인증 서버가 비밀키(private signing key)로 서명하여 생성한다.
+리소스 서버는 이 서명을 검증하기 위해 공개키(public signing key)를 사용한다.
+따라서 Opaque Token처럼 매번 인증 서버에 요청하지 않아도, 토큰 자체의 서명만 검증해 신뢰할 수 있다.
+
+공개키는 인증 서버가 제공하는 전용 엔드포인트를 통해 리소스 서버가 획득하며, 
+자주 요청할 필요가 없어 성능상 큰 이점이 있다.
+물론 키 유출 시 보안 문제가 생길 수 있지만, 
+인증 서버와 리소스 서버가 같은 데이터 센터에 있다면 JWT는 매우 효율적이다.
+
+JWT 사용 흐름 요약:
+1.클라이언트는 인증 서버에 Access Token 요청을 보냄.
+
+2.인증 서버는 서명된 JWT 토큰(T)을 반환함.
+
+3.클라이언트는 이 토큰을 Authorization: Bearer <jwt> 형태로 리소스 서버에 전송한다.
+
+4.리소스 서버는 토큰의 서명을 검증하고, JWT 내부에서 스코프(scope) 등을 추출하여 인가를 처리함.
+
+5.인증 서버에 다시 요청할 필요가 없기 때문에 성능이 우수함.
+
+
+
+                                      OAuth 2.0 - JWT Token Example
+
+
+eyJraWQiOiJiWDBaVXliU3pzRjVlVVA4azltdGtDTkEy            {
+X2I6WC03XzZuU1JTVFphKVRjlilWiYWxnljoiUlMyNTYif            "ver" : 1,
+Q.eyJ2Zxli)jEslmp0aSl6lkFULjY5dUl4V2w4Qi1KcTV             "jti" : "AT.69uB8WI8B-jq4nyx9k82rUPTCalwd-rxKwYRiDgTVdY,oar1iwyzyQakSerOf56"
+.....                                                     "iss" : "https://dev-2148273.okta.com/oauth2/default",
+.....                                                     "aud" : "api://default",
+.....                                                     "iat" : 1619986492,
+zEnb7m6HZwxC2tPA8w7qcv7garY61_4Ygmbvw             =▶      "exp" : 1619986792,              
+                                                          "cid" : "0oam2dvbpPI2IMKuQ5d6",
+                                                          "uid" : "00u36oy8fCxxxPWhf5d6",
+                                                          "scp" : [
+                                                              "offline_access",
+                                                              "openid",
+                                                              "facebookapi.read",
+                                                              "profile",
+                                                              "fakebookapi.admin",
+                                                              "email"
+                                                                  ],
+                                                          "sub" : "shetty.vxxxx@gmail.com"  
+                                                        } 
+
+이 토큰은 처음 보면 일반 문자열처럼 보이지만, 
+디코딩하면 3개의 JSON 구조로 나뉜 구성(header.payload.signature)임을 확인할 수 있다.
+
+JWT 내부에 포함된 주요 속성:
+• exp: 토큰의 만료 시각 (expiration)
+
+• scp: 해당 토큰에 부여된 스코프 목록 (권한)
+
+• sub: 이 토큰이 발급된 사용자 ID (subject)
+
+이 정보들은 리소스 서버가 요청의 인가 여부를 판단하는 데 사용된다.
+
+참고로, 여기서 말하는 "인가(Authorization)"는
+애플리케이션 내부 권한 제어를 의미하며,
+OAuth에서 말하는 리소스 소유자가 클라이언트에 권한을 위임하는 것과는 구분된다.
+
+또한 JSON은 XML처럼 널리 쓰이는 개방형 데이터 포맷이며, 현재 대부분의 API에서 표준처럼 사용된다.
