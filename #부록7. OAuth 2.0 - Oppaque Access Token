@@ -1,0 +1,63 @@
+불투명 토큰 (Berarer Access Token)
+
+
+이번엔 리소스 서버가 REST API 요청을 어떻게 검증하고 보호하는지를 설명한다.
+
+
+                   OAuth 2.0 - Opaque Token
+
+
+             Access Token is sent in an HTTP Header
+              Authorization : Bearer<token>
+
+                                                     ⚫ Data centerㅡㅡㅡㅡㅡㅡㅡ |
+                                                      |                           |
+           Call HTTP API with Access Token (T)        |                           |
+         |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Resource Server            |
+         |                                            |          |                | 
+         |                                            |          |                |
+         |                                            |          |                |
+         |                                            | Verify Access Token(T)    |
+         |                                            |  and retrieve scopes      |
+         |                                            |          |                |
+         |                                            |          |                |
+      Client          HTTP Request for Access Token   |          ↓                |
+    Application ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→      Authorization          |
+         ↑                                            |         Server            |
+         |                                            |ㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+         |            Return Access Token (T)                   |
+         |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ |
+
+
+Shutterfly 같은 클라이언트 앱은 Google 인증 서버로부터 Access Token을 발급받는다.
+이 토큰은 사용자가 특정 권한을 승인했음을 나타내며, 
+클라이언트는 이를 HTTP 요청의 Authorization 헤더에 Bearer <token> 형식으로 포함해 리소스 서버에 전달한다.
+
+그러나 Opaque Token은 단순 문자열이라 의미를 담고 있지 않고, 리소스 서버는 토큰 내용을 알 수 없다.
+따라서 리소스 서버는 인증 서버에 HTTP 요청을 보내 토큰의 유효성, 만료 시간, 스코프(scope) 정보를 검증받아야 한다.
+스코프는 클라이언트가 어떤 자원에 어떤 권한으로 접근 가능한지를 정의하며, 
+이를 바탕으로 리소스 서버는 요청을 허용하거나 거부한다.
+이러한 방식에서 토큰은 단순한 식별 문자열이고, 
+실제 의미와 권한 정보는 인증 서버에 저장된 상태이므로 이를 Opaque Token이라 부른다.
+
+문제는 리소스 서버가 매 요청마다 인증 서버에 확인을 해야 하며, 
+이는 수백만 건 요청 시 병목현상(bottleneck)을 유발할 수 있다는 점이다.
+이 한계를 보완하기 위해 등장한 것이 Structured Token(JWT 등)이다.
+
+
+
+                    OAuth 2.0 - Opaque Token Example
+
+                    1d52703551c84012a7b0af0930092ea6
+                                   🔻
+         Authorization : Bearer 1d52703551c84012a7b0af0930092ea6
+
+다음은 Opaque Access Token의 예시이다:
+1d52703551c84012a7b0af0930092ea6
+단순한 문자열이며, 
+리소스 API를 호출할 때는 HTTP 헤더에 Authorization: Bearer <token> 형식으로 넣어 사용한다.
+
+이러한 토큰은 Bearer Token이라고도 하며,
+“이 토큰을 가진 자(bearer)에게 자원 접근을 허용한다”는 의미를 가진다.
+이 때문에 토큰은 비밀번호만큼 민감한 정보이며, 유출되지 않도록 철저히 보호되어야 한다.
+향후 이 토큰들을 안전하게 다루는 다양한 보안 전략에 대해 알아볼 예정이다.
