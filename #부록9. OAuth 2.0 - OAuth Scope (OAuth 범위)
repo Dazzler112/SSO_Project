@@ -1,0 +1,45 @@
+
+
+                                OAuth 2.0 - OAuth Scope
+
+
+
+                                              |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+                                              |   ● Google Data Center             |
+   Access Token in sent in an Http Header     |                                    |
+       Authorization : Bearer<token>          |                                    |
+                                              |                                    |
+                                              |                                    |
+  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ❌ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Google Gmail API         |
+  |                                           |                                    |
+  |                                           |                                    |
+  |                                           |                                    |
+  |                                           |                                    |
+  | |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ❌ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Google Youtube API       |
+  | |                                         |                                    |
+  | |      Call HTTP API with Access Token (T)|                                    |
+  | |  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→ Google Photos API         |
+  | |  |                                      |                                    |
+  | |  |                                      |                                    |
+  | |  |          HTTP Request for Access Token                                    |
+  | |  |             (Return Access Token)    |              Google                |
+Shutterfly ←ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→ Authorization            |
+                                              |              Server                |
+                                              |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+
+
+
+OAuth 2.0에서 Scope는 클라이언트 애플리케이션이 접근 가능한 자원 범위를 정의하는 핵심 요소이다.
+예를 들어, 사용자가 Shutterfly 앱에 Google Photos 라이브러리 접근을 허용하면, 
+발급된 Access Token에는 Google Photos에 대한 Scope만 포함된다.
+이 토큰으로 Google Photos API를 호출하면 정상적으로 동작하지만, 
+같은 토큰으로 Gmail API를 호출하면 Gmail Scope가 없기 때문에 호출이 거부된다.
+
+즉, 각 Google API는 자신만의 Scope를 가지며, 
+Resource Server는 Access Token 내의 Scope를 검사해 허용된 요청만 수행한다.
+OAuth 2.0의 핵심은 토큰에 명시된 Scope에 따라 리소스 접근 권한을 제한하는 것이다.
+
+이와는 달리, 엔터프라이즈 환경에서는 사용자 그룹(예: AD 그룹)에 따라 자동으로 Scope가 설정되며, 
+제3자 앱 개념 없이 내부 시스템 간 연동이 이루어진다.
+이 차이는 많은 개발자들이 혼란을 겪는 지점이며, 
+이후 알아볼 것에서 기술적 기반 Scope 자동 설정도 다룰 예정이다.
