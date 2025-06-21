@@ -1,0 +1,235 @@
+
+
+OAuth 2.0에서 "클라이언트"는 단순히 Authorization Server로부터 Access Token을 요청할 수 있는 애플리케이션을 의미하며, 
+반드시 프론트엔드일 필요는 없다. 서버에서 실행되는 Confidential Client와 브라우저, 모바일 등에서 실행되는 Public Client로 나뉜다.
+Grant Type은 이러한 다양한 환경에 맞게 Access Token을 발급받는 방식이며, 대표적인 유형은 다음과 같다.
+
+
+
+                                OAuth 2.0 - Authorization Code (PKCE)
+
+
+                           Authorization Code Grant 
+                                     \ 
+                                      \                   Authorization EP
+                          /ㅡㅡㅡㅡㅡㅡ\ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Authorization
+                        /       /ㅡㅡㅡㅡ\ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ      Server     ←ㅡㅡㅡㅡ\ JWKS EP
+                      /        /          \      /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→                           \
+                    1️⃣       /              ↘  /        Token EP        ↗       ↑ Introspect EP  |
+                    /       /                  /                       /        |                |
+                   /      2️⃣             Get Access token       User Info Ep    |                |
+                 /       /                 /                    ◞               |           Retrieve public   
+     Get Authorization  /               3️⃣                    ◞                 |            Signing keys
+               ◜     Returns           /         Get User Information           |                  |
+               \    Auth Code        /            (Open ID Connect)     Verify Access Token        |
+                \     \             /            ◞                      and retrieve scopes        |
+                 \     ◟Redirection EP        4️⃣                                 |                |
+                   ◟    ↘        /            /                                  6️⃣               |
+                     ◟  Client /             /                                    |               |
+      📱  ㅡㅡㅡㅡ→  Application  ㅡㅡㅡㅡㅡ/                                      |              7️⃣
+  User Agent                                                                      |              /
+       ↑   \               |                                                      |             /
+       |    \              |     Call RESP API with Access Token                  |            /
+      🙍‍♂️    \             |          (Returns Photos List)                        |          ◞
+   Resource   \            |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ5️⃣ ㅡㅡㅡㅡㅡㅡ→  Resource Server   ◞
+     Owner     \                                                           
+                \
+              The Client application is running on
+              a Browser, Desktop or Mobile. it's a 
+              public Client
+
+
+OAuth 2.0에서 브라우저, 모바일, 데스크톱처럼 보안이 약한 환경에서 실행되는 애플리케이션은 Public Client로 분류된다. 
+이 경우 client_secret을 안전하게 저장할 수 없어 기존 Authorization Code Grant 방식만으로는 보안이 취약하다. 
+이를 보완하기 위해 등장한 것이 PKCE (Proof Key for Code Exchange) 확장이다.
+
+PKCE는 클라이언트가 code_verifier를 동적으로 생성하고, 
+이를 기반으로 code_challenge를 만든 뒤 Authorization 요청 시 함께 전송한다. 
+Authorization Server는 이 정보를 기억해두고, 
+이후 클라이언트가 Access Token을 요청할 때 다시 code_verifier를 제출하면 그것을 검증하여 유효한 요청자인지 판단한다. 
+이 방식은 client_secret 없이도 안전하게 인증을 수행할 수 있게 해준다.
+
+이는 보안상 위험했던 Implicit Grant를 대체하기 위해 권장되는 방식이며, 
+모바일 앱, SPA 등 프론트 환경에서는 반드시 PKCE를 적용한 Authorization Code Grant를 사용하는 것이 권장된다.
+
+
+
+                                OAuth 2.0 - Implicit (폐기됨)
+
+
+                            Implicit Grant (Deprecated)
+
+                                      
+                                                         Authorization EP
+                          /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Authorization
+                        /       /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ      Server     ←ㅡㅡㅡㅡ\ JWKS EP
+                      /        /                /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→                           \
+                    1️⃣       /                /        Token EP        ↗       ↑ Introspect EP  |
+                    /       /                  /                       /        |                |
+                   /      2️⃣             Get Access token       User Info Ep    |                |
+                 /       /                 /                    ◞               |           Retrieve public   
+     Get Authorization  /               3️⃣                    ◞                 |            Signing keys
+               ◜     Returns           /         Get User Information           |                  |
+               \    Access Code      /            (Open ID Connect)     Verify Access Token        |
+                \     \             /            ◞                      and retrieve scopes        |
+                 \     ◟Redirection EP        4️⃣                                 |                |
+                   ◟    ↘        /            /                                  6️⃣               |
+                     ◟  Client /             /                                    |               |
+      📱  ㅡㅡㅡㅡ→  Application  ㅡㅡㅡㅡㅡ/                                      |              7️⃣
+  User Agent                                                                      |              /
+       ↑   \               |                                                      |             /
+       |    \              |     Call RESP API with Access Token                  |            /
+      🙍‍♂️    \             |          (Returns Photos List)                        |          ◞
+   Resource   \            |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ5️⃣ ㅡㅡㅡㅡㅡㅡ→  Resource Server   ◞
+     Owner     \                                                           
+                \
+              The Client application is running on
+              a Browser, Desktop or Mobile. it's a 
+              public Client
+
+
+Implicit Grant는 브라우저, 모바일 등 Public Client 환경에서 간단히 사용되던 방식이지만, 
+보안상의 이유로 현재는 폐기(deprecated)되었다. 
+이 방식은 Authorization 요청에 대한 응답으로 Access Token을 즉시 반환하며, 
+중간에 Authorization Code를 거치지 않는다. 즉, 토큰이 직접 URL에 포함되어 브라우저로 전달되며, 이는 중간에 탈취될 수 있는 큰 위험 요소다.
+
+게다가 이 방식은 Token Endpoint를 거치지 않기 때문에 
+client_secret 확인, code_verifier 사용, scope 검증 같은 추가 보안 절차가 없다. 
+이러한 이유로 OAuth 표준에서는 Implicit Grant를 더 이상 사용하지 말고, PKCE를 적용한 Authorization Code Grant로 대체할 것을 권장한다.
+
+정리하자면, Implicit Grant는
+
+1. 보안이 약한 환경(프론트)에서 사용
+2. Access Token을 직접 노출 (redirect URI에 포함)
+3. Token Endpoint를 생략함으로써 보안 기능 결여
+4. 현재는 PKCE 기반의 Authorization Code Grant가 공식 대체안
+
+
+
+
+                                    OAuth 2.0 - Client Credentials
+
+
+                      Client Credentials Grant     
+                                \
+                                  ↘     
+                      /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Authorization
+                Get Access token                                     Server      ↖
+                    /                                                  ↑           \
+                   /                                                   |          Retrieve public
+                 1️⃣                                                     |           signing keys
+                 /                                            Verify Access Token    |
+          Client                                              and retrieve scopes    |
+        Application                                                    |            4️⃣
+             |                                                         |            /
+             |                                                        3️⃣           /
+             |     Call RESP API with Access Token                     |          /
+             |          (Returns Photos List)                          |        ◞
+             |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ2️⃣ㅡㅡㅡㅡㅡㅡㅡ→   Resource Server   
+
+
+Client Credentials Grant는 사용자(Resource Owner) 없이 서버 간 통신에서 사용된다. 
+백엔드에서 client ID와 secret을 Authorization Server에 전달해 Access Token을 받고, 
+이를 통해 Resource Server에 접근한다. 주로 cron 작업이나 시스템 간 통신에 적합하다.
+
+
+
+
+                            OAuth 2.0 - Resource Owner Password Credentials (폐기 권장)
+
+                           Client Credentials Grant     
+                                     \
+                                       ↘     
+                           /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Authorization  ←ㅡㅡ\
+                     Get Access token                     Token EP   ↗   Server          \ JWKS EP
+                         /                                         /       ↑Introspect EP  \
+                        /                                  User Info EP    |            Retrieve public
+                      1️⃣                  Get User Information /           |             signing keys
+                      /                    (Open ID Connect) /      Verify Access Token     |
+    💻  ㅡㅡㅡ→  Client    ㅡㅡㅡㅡㅡ2️⃣ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ/       and retrieve scopes       |
+   User         Application                                                 |               5️⃣
+   Agent           |                                                        |               /
+     ↑             |                                                       4️⃣              /
+     |             |     Call RESP API with Access Token                    |            /
+    🙍‍♂️            |          (Returns Photos List)                         |           / 
+  Resource         |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ3️⃣ㅡㅡㅡㅡㅡㅡㅡ→   Resource Server  ◞  
+   Owner
+
+
+
+사용자의 ID/PW를 클라이언트가 직접 받아 토큰을 발급받는 방식으로, 
+3자 앱에선 보안 위험이 커서 더 이상 권장되지 않음. 
+동일 조직 내 신뢰된 앱에서만 제한적으로 사용. 
+일반적으로는 Authorization Code Grant (PKCE 포함) 사용을 권장함.
+
+
+
+
+
+                                           OAuth 2.0 - Refresh Token
+
+                           Authorization Code Grant 
+                                     \ 
+                                      \                   Authorization EP
+                          /ㅡㅡㅡㅡㅡㅡ \ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Authorization
+                        /       /ㅡㅡㅡㅡ\ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ      Server     ←ㅡㅡㅡㅡ\ JWKS EP
+                      /        /          \      /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→     (Google)             \
+                    1️⃣       /              ↘  /        Token EP        ↗       ↑ Introspect EP  |
+                    /       /                  /                       /        |                |
+                   /      2️⃣             Get Access token       User Info Ep    |                |
+                 /       /                 /                    ◞               |           Retrieve public   
+     Get Authorization  /               3️⃣                    ◞                 |            Signing keys
+               ◜     Returns           /         Get User Information           |                  |
+               \    Auth Code        /            (Open ID Connect)     Verify Access Token        |
+                \     \             /            ◞                      and retrieve scopes        |
+                 \     ◟Redirection EP        4️⃣                                 |                |
+                   ◟    ↘        /            /                                  6️⃣               |
+                     ◟  Client /             /                                    |               |
+      💻  ㅡㅡㅡㅡ→  Application  ㅡㅡㅡㅡㅡ/                                      |              7️⃣
+  User Agent         (Shutterfly)                                                 |              /
+       ↑                   |                                                      |             /
+       |                   |     Call RESP API with Access Token                  |            /
+      🙍‍♂️                  |          (Returns Photos List)                        |          ◞
+   Resource                |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ5️⃣ ㅡㅡㅡㅡㅡㅡ→  Resource Server   ◞
+     Owner                                                                (Google Photos API)
+
+
+
+Access Token은 유효기간이 짧아(예: 1시간), 
+만료 후 사용자가 다시 로그인하지 않도록 Refresh Token을 함께 발급함. 
+Refresh Token으로 새로운 Access Token을 발급받을 수 있어 지속적인 인증 유지가 가능함. 
+주로 Authorization Code Grant와 함께 사용되며, 보안상 로그아웃 시 두 토큰 모두 폐기해야 함.
+
+
+
+
+
+
+                         OAuth 2.0 - Token Revocation
+                      
+                                                           Token EP
+                            /ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Authorization  
+                     Get Access token                                ↗  Server          
+                          /                                         /  (Google)      
+                         /                                         /     
+                        /                                        /Revocation EP  
+                       /                                        /    
+                      /                   Revoke Token         /
+    💻  ㅡㅡㅡ→  Client    ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ/      
+   User         Application                                                
+   Agent        (Shutterfly)                                                
+     ↑             |                                                     
+     |             |                                                    
+     |             |     Call RESP API with Access Token                
+    🙍‍♂️            |          (Returns Photos List)                        
+  Resource         |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ→  Resource Server  
+   Owner                                                           (Google Photos API)
+
+
+
+사용자가 로그아웃하면 클라이언트는 Revocation Endpoint에 Access/Refresh Token을 전달해 토큰을 무효화해야 한다. 
+그렇지 않으면 토큰 유효 기간 내 불법 사용 가능성이 존재한다.
+
+
+
+OAuth는 다양한 플랫폼을 위한 라이브러리가 존재하지만, 흐름을 이해해야 디버깅과 보안 설정이 정확해진다.
