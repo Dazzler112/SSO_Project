@@ -1,0 +1,32 @@
+
+
+               OpenID Connect Core
+
+OpenID Scopes and Token
+ ● openid profile email address phone
+ ● ID Token contains User information
+
+/userinfo Response (Scopes : openid profile email)
+ {
+   "sub" : "00u36oy8fCxxxPWhf5d6",
+   "locale" : "en-US",
+   "zoneinfo" : "America/Los_Angeles",
+   "name" : "Viraj Shetty",                         ㅡㅡ|
+   "preferred_username" : "shetty.viraj@gmail.com",     |   Profile
+   "given_name" : "Viraj",                              |
+   "family_name" : "Shetty",                        ㅡㅡ|
+   "update_at" : 1627238752,
+   "email" : "shetty.viraj@gmail.com",              ㅡㅡ|   email
+   "email_verified" : true                          ㅡㅡ|
+ }
+
+
+
+OAuth 2.0은 Access Token을 발급해 API에 접근하게 해주지만, 사용자 정보는 포함하지 않는다. 
+이를 보완하기 위해 OpenID Connect가 사용되며, 
+사용자 인증 후 ID Token 또는 UserInfo Endpoint를 통해 사용자 정보를 제공한다. 
+클라이언트는 openid, profile, email, address, phone 등의 스코프를 명시해 사용자 정보를 요청할 수 있다.
+openid 스코프는 필수이며, 이 외 스코프에 따라 이름, 이메일, 주소 등 다양한 정보가 포함된다.
+예를 들어, profile 스코프는 이름·성·지역 정보를, email 스코프는 이메일 주소와 검증 여부를 포함한다. 
+클라이언트는 이 정보를 ID Token으로 받거나 UserInfo API를 통해 조회할 수 있으며, 
+해당 스코프가 없으면 401 에러가 발생한다.
