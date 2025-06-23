@@ -1,0 +1,42 @@
+
+
+
+
+                                       권한 부여 유형 표
+
+  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+  | Authorization Code | ●  Server side web applications      | Confidential Client         |
+  |                    | ●  Needs User Agent                  |                       👍    |
+  |                    | ●  Can use Refresh tokens            |                             |
+  |                    | ●  Very Safe                         |                             |
+  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+  | implicit           | ●  Single Page Application           | Public Client               |
+  |                    | ●  Needs User Agent                  |                       👎    |
+  |                    | ●  Cannot use Refresh tokens         |                             |
+  |                    | ●  Danger of Access token exposure   |                             |
+  |                    | 🔴 Not recommended (Deprecated)      |                             |
+  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+  | Authorizztion Code | ●  Recommended for public clients    | Public Client               |
+  | (PKCE extension)   | ●  Needs User Agent                  | Confidential Client   👍    |
+  |                    | ●  Can use Refresh tokens            |                             |
+  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+  | Client Credential  | ●  Use for Cron Jobs on the server   | Confidential Client         |
+  |                    | ●  No User Agent needed              |                       👍    |
+  |                    | ●  Cannot use Refresh tokens         |                             |
+  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+  | Resource Owner     | ●  Resource Server and Client must   | Public Client               |
+  | Password           |    be from same Organization         | Confidential Client   👎    |
+  | Credentials        | ●  No User Agent needed              |                             |
+  |                    | ●  Can use Refresh tokens            |                             |
+  |                    | 🔴 Not Recommended (Deprecated)      |                             |
+  |ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+
+
+
+OAuth 2.0의 다양한 권한 부여 방식 중 실제로 권장되는 것은
+Authorization Code Grant(가능하면 PKCE 포함)와 Client Credentials Grant이다. 
+Implicit Grant와 Resource Owner Password Credentials Grant는 보안상의 이유로 더 이상 사용이 권장되지 않는다. 
+반드시 PKCE를 사용하라는 것은 아니지만 사용 할 수 있으면 꼭 사용하는걸 권장한다.
+웹, 모바일, 데스크탑 앱은 Authorization Code + PKCE를 사용하고, 
+서버의 백엔드 작업이나 크론 잡 등 사용자 개입이 없는 환경에서는 Client Credentials를 사용하는 것이 적합하다. 
+PKCE는 public client에서도 보안을 강화해주므로 가능하다면 항상 사용하는 것이 좋다.
