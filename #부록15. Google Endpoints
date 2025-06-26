@@ -1,0 +1,82 @@
+
+
+https://accounts.google.com/.well-known/openid-configuration
+
+{
+  "issuer": "https://accounts.google.com",
+  "authorization_endpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+  "device_authorization_endpoint": "https://oauth2.googleapis.com/device/code",
+  "token_endpoint": "https://oauth2.googleapis.com/token",
+  "userinfo_endpoint": "https://openidconnect.googleapis.com/v1/userinfo",
+  "revocation_endpoint": "https://oauth2.googleapis.com/revoke",
+  "jwks_uri": "https://www.googleapis.com/oauth2/v3/certs",
+  "response_types_supported": [
+    "code",
+    "token",
+    "id_token",
+    "code token",
+    "code id_token",
+    "token id_token",
+    "code token id_token",
+    "none"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "scopes_supported": [
+    "openid",
+    "email",
+    "profile"
+  ],
+  "token_endpoint_auth_methods_supported": [
+    "client_secret_post",
+    "client_secret_basic"
+  ],
+  "claims_supported": [
+    "aud",
+    "email",
+    "email_verified",
+    "exp",
+    "family_name",
+    "given_name",
+    "iat",
+    "iss",
+    "name",
+    "picture",
+    "sub"
+  ],
+  "code_challenge_methods_supported": [
+    "plain",
+    "S256"
+  ],
+  "grant_types_supported": [
+    "authorization_code",
+    "refresh_token",
+    "urn:ietf:params:oauth:grant-type:device_code",
+    "urn:ietf:params:oauth:grant-type:jwt-bearer"
+  ]
+}
+
+
+.well-known/openid-configuration은 OpenID Connect의 메타데이터를 제공하는 표준 경로이다.
+issuer는 토큰 발급자 식별자이며,
+authorization_endpoint는 사용자 인증을 시작할 URL이다.
+token_endpoint는 Authorization Code로 액세스 토큰을 교환하는 곳이고,
+userinfo_endpoint는 사용자 정보를 조회할 수 있는 API이다.
+jwks_uri는 JWT 서명 검증에 필요한 공개키 목록을 제공한다.
+
+response_types_supported는 클라이언트가 요청 시 사용할 수 있는 응답 유형이며,
+예: "id_token"은 OpenID Connect에서 사용자 정보를 포함한 JWT를 의미하고, Implicit Flow나 Hybrid Flow에서 사용된다.
+
+grant_types_supported는 지원하는 인증 방식이며,
+
+"authorization_code": 서버 간 통신에서 가장 안전한 방식
+
+"refresh_token": 액세스 토큰 만료 시 재발급
+
+"device_code": 디바이스 인증용
+
+"jwt-bearer": 서버 간 인증에 사용되는 JWT 기반 흐름이다.
